@@ -1,4 +1,28 @@
-__pycache__/
+# 🔒 Python virtual environments
 .venv/
+AI_venv/
+env/
+venv/
+
+# 🧠 Python cache
+__pycache__/
+*.py[cod]
+
+# 📦 Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# 📁 Logs and data
 logs/
+*.log
 *.csv
+*.tsv
+*.db
+*.sqlite3
+
+# 💻 VSCode
+.vscode/
+
+# 💩 OS junk
+.DS_Store
+Thumbs.db
+
