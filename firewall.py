@@ -3,6 +3,8 @@ import json
 import csv
 import os
 from datetime import datetime
+from behavior_util import extract_behavior_features, log_behavior
+
 
 with open('config.json') as f:
     rules = json.load(f)
@@ -49,6 +51,9 @@ def packet_handler(packet):
 
         print(f"[ALLOWED] {src_ip}:{dst_port}")
         log_packet(packet, "ALLOWED")
+
+        features = extract_behavior_features(packet)
+        log_behavior(features)
 
 
 
