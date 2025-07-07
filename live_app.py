@@ -1,66 +1,77 @@
+# live_app.py
+
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import joblib
 import os
+import json
+import auto_retrain
+from auto_blocker import load_blocklist
+from datetime import datetime
 
-st.set_page_config(page_title="DeepBlock AI Firewall", layout="wide")
+st.set_page_config(page_title="🛡️ DeepBlock AI Firewall", layout="wide")
 
-st.title("🛡️ DeepBlock AI Firewall Dashboard")
+# --- HEADER ---
+st.markdown("""
+    <h1 style='text-align: center; color: #00ffae;'>🧠 DeepBlock Firewall</h1>
+    <h4 style='text-align: center; color: white;'>Creator-Grade. Adaptive. Smartly Dangerous.</h4>
+    <hr style="border: 1px solid #00ffae;" />
+""", unsafe_allow_html=True)
 
-# Load behavior log
-behavior_path = "model_data/behavior_log.csv"
-model_path = "model_data/model.pkl"
+# --- BLOCKLIST SECTION ---
+st.subheader("🚫 Blocked IPs (Auto + Manual)")
+blocklist = load_blocklist()
 
-if not os.path.exists(behavior_path) or not os.path.exists(model_path):
-    st.error("❌ Missing required files: behavior_log.csv or model.pkl")
-    st.stop()
+if blocklist:
+    formatted_blocklist = []
+    for ip, info in blocklist.items():
+        time = info.get("timestamp", "Unknown")
+        formatted_blocklist.append({
+            "🚫 IP Address": ip,
+            "📆 Blocked On": time,
+            "📍 Type": "Auto" if "auto" in info.get("reason", "").lower() else "Manual"
+        })
+    st.dataframe(pd.DataFrame(formatted_blocklist), use_container_width=True)
+else:
+    st.success("✅ No threats currently blocked!")
 
-df = pd.read_csv(behavior_path)
+# --- TRAFFIC LOG ---
+st.subheader("📊 Real-Time Traffic Log (Last 50 packets)")
 
-# Load trained model
-model = joblib.load(model_path)
+log_file = "logs/traffic_log.csv"
+if os.path.exists(log_file):
+    df = pd.read_csv(log_file)
+    df = df.tail(50)[["timestamp", "src_ip", "dst_port", "decision"]]
+    df["decision"] = df["decision"].apply(
+        lambda x: f"✅ {x}" if "ALLOW" in x else f"⛔ {x}"
+    )
+    st.dataframe(df, use_container_width=True)
+else:
+    st.warning("Traffic log not found.")
 
-# Prepare features
-features = df[["dst_port", "packet_len", "is_syn"]]
+# --- RETRAIN SECTION ---
+st.subheader("🔄 AI Model Re-Trainer")
 
-# Predict
-df["prediction"] = model.predict(features)
-df["prediction"] = df["prediction"].map({1: "normal", -1: "suspicious"})
+if st.button("🧠 Retrain Model with Behavior Log"):
+    with st.spinner("Feeding new behavior logs to AI..."):
+        try:
+            auto_retrain.retrain()
+            st.success("🎉 Model updated! Your firewall just got smarter.")
+        except Exception as e:
+            st.error(f"❌ Failed to retrain: {e}")
 
-# Optional: show risk level (anomaly score)
-df["risk_score"] = model.decision_function(features)
-df["risk_level"] = pd.cut(df["risk_score"], bins=[-float('inf'), -0.2, 0.1, float('inf')],
-                          labels=["⚠️ High", "🟡 Medium", "🟢 Low"])
+# --- INSIGHTS ---
+st.subheader("📈 Intelligence Dashboard")
+st.markdown("""
+> Soon you’ll be able to see:  
+- 🧠 Live anomaly graph  
+- 🔌 Top targeted ports  
+- 🌐 IP heatmap  
+- ⏳ Suspicious traffic trends  
+""")
 
-# Convert timestamp if available
-if "timestamp" in df.columns:
-    try:
-        df["timestamp"] = pd.to_datetime(df["timestamp"], unit='s', errors="coerce")
-    except:
-        pass
+st.markdown("---")
+st.caption("Built by Priya • Powered by ML • Respect the Firewall ⚡")
 
-# Show latest logs
-st.subheader("📋 Latest Traffic Logs")
-st.dataframe(df.tail(10), use_container_width=True)
-
-# Count chart
-st.subheader("📊 Traffic Type Count")
-st.bar_chart(df["prediction"].value_counts())
-
-# Risk breakdown
-st.subheader("📈 Risk Level Distribution")
-st.bar_chart(df["risk_level"].value_counts())
-
-# Timeline of suspicious activity
-if "timestamp" in df.columns:
-    st.subheader("⏱️ Suspicious Activity Over Time")
-    suspicious_time = df[df["prediction"] == "suspicious"]
-    time_chart = suspicious_time.groupby("timestamp").size()
-    st.line_chart(time_chart)
-
-# Download option
-st.download_button("⬇️ Download full behavior log", data=df.to_csv(index=False), file_name="behavior_log_with_predictions.csv")
 
 
 
