@@ -25,5 +25,23 @@ You can think of it as a **self-learning AI security agent** — lightweight, be
 - 🔁 **Self-Retraining System**
 - 🧠 **Beautiful Streamlit UI Dashboard**
 
+---
+
+### 💡 How It Works
+
+- `firewall.py` captures packets using Scapy.
+- Packet decisions are made by:
+  - Static rules (`config.json`)
+  - AI model (`model.pkl`) trained with IsolationForest.
+- Features like destination port, packet size, and SYN flag are extracted.
+- Logged behaviors go into `model_data/behavior_log.csv`.
+- Repeat offenders are automatically blocked via `auto_blocker.py`.
+- `auto_retrain.py` retrains the model based on labeled behavior logs.
+- A modern **Streamlit UI** (`live_app.py`) shows:
+  - Blocked IPs
+  - Live traffic decisions
+  - One-click retraining
+
+
 
 
