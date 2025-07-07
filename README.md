@@ -42,6 +42,24 @@ You can think of it as a **self-learning AI security agent** — lightweight, be
   - Live traffic decisions
   - One-click retraining
 
+---
+
+## 🧪 Future Ideas
+
+- 🌐 Geo-IP mapping & flag display  
+- 📊 Real-time charts for anomaly spikes  
+- ☁️ Cloud-hosted dashboard  
+- 🖥️ `.exe` version for Windows  
+- 💰 Commercial offering for creators/devs  
+
+---
+
+## 🙋‍♀️ Author
+
+**Priyadharshini**  
+_Student, AI & Data Science | ML Enthusiast | Builder of Intelligent Tools_  
+India 🇮🇳  
+→ _“Bringing AI to life with purpose.”_
 
 
 
